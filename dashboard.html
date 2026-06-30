@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RestaurOS — Dashboard</title>
+
+  <!-- Bootstrap 5.3 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <!-- Estilos propios -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- Overlay para mobile -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="App.toggleSidebar()"></div>
+
+<div class="app-layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar" id="sidebar">
+    <!-- Brand -->
+    <a href="#" class="sidebar-brand" onclick="App.navigate('dashboard');return false;">
+      <div class="sidebar-brand-icon">🍽️</div>
+      <div>
+        <div class="sidebar-brand-name">RestaurOS</div>
+        <div class="sidebar-brand-sub">Sistema de Gestión</div>
+      </div>
+    </a>
+    <!-- Contenido generado por JS -->
+    <div id="sidebar-content" class="d-flex flex-column flex-grow-1 overflow-hidden">
+      <!-- Cargando... -->
+      <div class="text-center py-4 text-secondary"><div class="spinner-border spinner-border-sm"></div></div>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN WRAPPER ══ -->
+  <div class="main-wrapper">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <!-- Hamburger mobile -->
+      <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" onclick="App.toggleSidebar()">
+        <i class="bi bi-list fs-5"></i>
+      </button>
+
+      <!-- Page title -->
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+
+      <!-- Spacer -->
+      <div class="flex-grow-1"></div>
+
+      <!-- Notificaciones -->
+      <div class="notif-dropdown-wrapper">
+        <button class="btn btn-sm btn-outline-secondary position-relative me-2" id="btn-notif" title="Notificaciones" onclick="App.toggleNotifPanel()">
+          <i class="bi bi-bell fs-6"></i>
+          <span class="position-absolute top-0 start-100 translate-middle badge bg-danger rounded-pill" style="font-size:0.6rem;display:none;" id="notif-badge"></span>
+        </button>
+        <div class="notif-panel" id="notif-panel">
+          <div id="notif-panel-body"></div>
+        </div>
+      </div>
+
+      <!-- Botón actualizar -->
+      <button class="btn btn-sm btn-outline-primary me-2" onclick="App.refreshPage()" title="Actualizar">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+
+      <!-- Perfil usuario -->
+      <div class="dropdown">
+        <button class="btn btn-sm d-flex align-items-center gap-2 border" data-bs-toggle="dropdown" id="btn-perfil" style="border-radius:10px;">
+          <div id="topbar-avatar" class="bg-warning text-dark fw-bold d-flex align-items-center justify-content-center"
+               style="width:30px;height:30px;border-radius:50%;font-size:0.72rem;flex-shrink:0;"></div>
+          <span id="topbar-nombre" class="d-none d-md-inline fw-medium" style="font-size:0.875rem;max-width:120px;" class="text-truncate"></span>
+          <i class="bi bi-chevron-down text-muted" style="font-size:0.7rem;"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-1" style="border-radius:12px;min-width:200px;">
+          <li><div class="dropdown-item-text py-2 px-3">
+            <div class="fw-semibold" id="dd-nombre" style="font-size:0.875rem;"></div>
+            <div class="text-muted" id="dd-email" style="font-size:0.78rem;"></div>
+            <div id="dd-rol" class="mt-1"></div>
+          </div></li>
+          <li><hr class="dropdown-divider my-1"></li>
+          <li><a class="dropdown-item py-2" href="#" onclick="App.navigate('horario');return false;"><i class="bi bi-calendar3 me-2 text-primary"></i>Mi Horario</a></li>
+          <li><a class="dropdown-item py-2" href="#" onclick="App.navigate('turno');return false;"><i class="bi bi-clock me-2 text-success"></i>Mi Turno</a></li>
+          <li><hr class="dropdown-divider my-1"></li>
+          <li><a class="dropdown-item py-2 text-danger" href="#" onclick="App.logout();return false;"><i class="bi bi-box-arrow-left me-2"></i>Cerrar sesión</a></li>
+        </ul>
+      </div>
+    </header>
+
+    <!-- ══ CONTENT AREA ══ -->
+    <main class="page-content" id="page-content">
+      <!-- Cargando -->
+      <div class="d-flex align-items-center justify-content-center" style="min-height:400px;">
+        <div class="text-center">
+          <div class="spinner-border text-warning mb-3" style="width:3rem;height:3rem;"></div>
+          <p class="text-muted fw-medium">Iniciando sistema...</p>
+        </div>
+      </div>
+    </main>
+
+  </div><!-- /main-wrapper -->
+</div><!-- /app-layout -->
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script type="module">
+  import { AuthService } from './services/auth.js';
+  import { renderSidebar, activarLink } from './components/sidebar.js';
+  import { renderPage, PageActions, MesaActions, SyncService } from './js/pages.js';
+  import { Toast } from './components/ui.js';
+  import { NotifService } from './js/notificationService.js';
+  import { NotifScheduler } from './js/notifScheduler.js';
+
+  // Proteger ruta
+  if (!AuthService.isAuthenticated()) {
+    window.location.href = 'index.html';
+  }
+
+  const usuario = AuthService.getUsuario();
+
+  // ── Exponer globales para onclick en HTML ──
+  window.Pages = PageActions;
+  window.Mesas = MesaActions;  // Acciones de estado de mesas (marcar/liberar/confirmar)
+  window.App = {
+    currentPage: "dashboard",
+
+    // Navegar a página
+    async navigate(pageId) {
+      this.currentPage = pageId;
+      // Cerrar sidebar en mobile
+      if (window.innerWidth < 992) this.closeSidebar();
+
+      // Actualizar título topbar
+      const titulos = {
+        dashboard: "Dashboard", pedidos: "Pedidos", nuevo_pedido: "Nuevo Pedido",
+        platillos: "Carta de Platillos", platillos_ranking: "Platillos Populares",
+        stock: "Stock de Ingredientes", ingredientes: "Ingredientes",
+        horarios: "Horarios", horarios_meseros: "Horarios de Meseros",
+        horarios_cocineros: "Horarios de Cocineros", horarios_porteros: "Horarios de Porteros",
+        turno: "Mi Turno", horario: "Mi Horario", mesas: "Mesas del Restaurante",
+        reservaciones: "Reservaciones de Mesas", reservaciones_platillos: "Reservas de Platillos",
+        finanzas: "Balance Financiero", empleados: "Empleados", usuarios: "Usuarios & Roles",
+        solicitudes: "Solicitudes de Personal", solicitudes_personal: "Solicitudes de Personal",
+        solicitudes_ing: "Solicitudes de Ingredientes", ingredientes_sol: "Pedidos de Ingredientes",
+        equipos_cocina: "Equipos de Cocina"
+      };
+      document.getElementById("topbar-title").textContent = titulos[pageId] || pageId;
+
+      // Activar link en sidebar
+      activarLink(pageId);
+
+      // Renderizar contenido con animación
+      const cont = document.getElementById("page-content");
+      cont.style.opacity = "0";
+      cont.style.transform = "translateY(8px)";
+
+      await renderPage(pageId, "page-content");
+
+      cont.style.transition = "opacity 0.22s ease, transform 0.22s ease";
+      cont.style.opacity = "1";
+      cont.style.transform = "translateY(0)";
+    },
+
+    logout() {
+      AuthService.logout();
+    },
+
+    toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("sidebar-overlay");
+      sidebar.classList.toggle("open");
+      overlay.style.display = sidebar.classList.contains("open") ? "block" : "none";
+    },
+
+    closeSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("sidebar-overlay");
+      sidebar.classList.remove("open");
+      overlay.style.display = "none";
+    },
+
+    // ── Centro de Notificaciones ──
+    toggleNotifPanel() {
+      const panel = document.getElementById("notif-panel");
+      const abierto = panel.classList.contains("open");
+      if (abierto) {
+        panel.classList.remove("open");
+      } else {
+        // Renderizar contenido fresco cada vez que se abre
+        document.getElementById("notif-panel-body").innerHTML = NotifService.renderPanel(usuario.rol);
+        panel.classList.add("open");
+      }
+    },
+
+    closeNotifPanel() {
+      document.getElementById("notif-panel")?.classList.remove("open");
+    },
+
+    refreshPage() {
+      this.navigate(this.currentPage);
+      Toast.info("Actualizando...");
+    }
+  };
+
+  // ── Inicializar sidebar ──
+  document.getElementById("sidebar-content").innerHTML = renderSidebar(usuario);
+
+  // ── Poblar topbar ──
+  document.getElementById("topbar-avatar").textContent = usuario.avatar;
+  document.getElementById("topbar-nombre").textContent = usuario.nombre.split(" ")[0];
+  document.getElementById("dd-nombre").textContent = usuario.nombre;
+  document.getElementById("dd-email").textContent = usuario.email;
+  document.getElementById("dd-rol").innerHTML = `<span class="badge bg-${AuthService.getColorRol(usuario.rol)}">${AuthService.getNombreRol(usuario.rol)}</span>`;
+
+  // ── Cargar dashboard inicial ──
+  App.navigate("dashboard");
+
+  // ── Centro de Notificaciones: badge inicial + cierre al click fuera ──
+  NotifService._actualizarBadgeTopbar(usuario.rol);
+
+  document.addEventListener("click", (e) => {
+    const dentroDelBoton = e.target.closest(".notif-dropdown-wrapper");
+    const dentroDelPanel = e.target.closest("#notif-panel");
+    if (!dentroDelBoton && !dentroDelPanel) App.closeNotifPanel();
+  });
+
+  // ── Iniciar scheduler de alertas por tiempo (pedidos retrasados, ──
+  // ── turnos por finalizar, stock crítico, reservas próximas, etc.) ──
+  NotifScheduler.start(60000);
+
+  // ── Iniciar sincronización periódica ──
+  SyncService.start(8000, (data) => {
+    // Actualizar badge de solicitudes en sidebar
+    const badges = document.querySelectorAll('[id^="badge-solicitudes"], [id^="badge-solicitudes_ing"]');
+    badges.forEach(b => {
+      if (data.solicitudes_pendientes > 0) {
+        b.textContent = data.solicitudes_pendientes;
+        b.style.display = "";
+      } else {
+        b.style.display = "none";
+      }
+    });
+
+    // Actualizar badge de notificaciones en topbar
+    NotifService._actualizarBadgeTopbar(usuario.rol);
+
+    // Si el panel de notificaciones está abierto, refrescar su contenido
+    const panel = document.getElementById("notif-panel");
+    if (panel && panel.classList.contains("open")) {
+      document.getElementById("notif-panel-body").innerHTML = NotifService.renderPanel(usuario.rol);
+    }
+  });
+
+  // ── Acceso rápido teclado ──
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") { App.closeSidebar(); App.closeNotifPanel(); }
+    if (e.ctrlKey && e.key === "n" && usuario.rol === "mesero") {
+      e.preventDefault();
+      App.navigate("nuevo_pedido");
+    }
+  });
+</script>
+
+</body>
+</html>
