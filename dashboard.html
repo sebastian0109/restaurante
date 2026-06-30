@@ -44,9 +44,14 @@
     <!-- Topbar -->
     <header class="topbar">
       <!-- Hamburger mobile -->
-      <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" onclick="App.toggleSidebar()">
+      <button class="btn btn-sm btn-outline-secondary d-lg-none me-1" onclick="App.toggleSidebar()" title="Menú">
         <i class="bi bi-list fs-5"></i>
       </button>
+
+      <!-- Marca compacta (solo móvil, sidebar oculto) -->
+      <a href="#" class="d-lg-none d-flex align-items-center justify-content-center me-2 flex-shrink-0"
+         style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f59e0b,#d97706);font-size:1rem;text-decoration:none;"
+         onclick="App.navigate('dashboard');return false;">🍽️</a>
 
       <!-- Page title -->
       <div class="topbar-title" id="topbar-title">Dashboard</div>
@@ -66,7 +71,7 @@
       </div>
 
       <!-- Botón actualizar -->
-      <button class="btn btn-sm btn-outline-primary me-2" onclick="App.refreshPage()" title="Actualizar">
+      <button class="btn btn-sm btn-outline-primary me-2 d-none d-sm-inline-flex" onclick="App.refreshPage()" title="Actualizar">
         <i class="bi bi-arrow-clockwise"></i>
       </button>
 

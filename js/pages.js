@@ -45,6 +45,158 @@ function badgeEstadoMesa(estado) {
 }
 
 // ══════════════════════════════════════════════════════
+//  MAPA INTERACTIVO — ZOOM & PAN TÁCTIL
+//  Sin librerías externas. Usa la Pointer Events API nativa
+//  para soportar mouse, touch y stylus de forma unificada:
+//    • 1 dedo / drag con mouse  → pan (solo si hay zoom aplicado)
+//    • 2 dedos (pinch)          → zoom centrado en el punto medio
+//    • rueda del mouse          → zoom centrado en el cursor
+//    • doble tap / doble click  → alterna zoom 1x ↔ 2.2x
+//  Las mesas (elementos <g class="mesa-grupo" onclick="...">)
+//  siguen siendo "clickeables": como nunca se llama
+//  preventDefault() sobre el click en sí, el navegador sigue
+//  disparando el evento click normalmente en los taps simples.
+// ══════════════════════════════════════════════════════
+const MapZoom = {
+  _ctx: null,
+
+  init(wrapId, innerId) {
+    const wrap = document.getElementById(wrapId);
+    const inner = document.getElementById(innerId);
+    if (!wrap || !inner) return;
+
+    const ctx = {
+      wrap, inner,
+      scale: 1, x: 0, y: 0,
+      minScale: 1, maxScale: 4,
+      pointers: new Map(),
+      pinchStartDist: 0,
+      pinchStartScale: 1,
+      panLast: null,
+      lastTap: 0,
+    };
+    this._ctx = ctx;
+
+    const apply = () => {
+      inner.style.transform = `translate(${ctx.x}px,${ctx.y}px) scale(${ctx.scale})`;
+    };
+
+    const clamp = () => {
+      const rect = wrap.getBoundingClientRect();
+      const scaledW = rect.width * ctx.scale;
+      const scaledH = rect.height * ctx.scale;
+      const minX = Math.min(0, rect.width - scaledW);
+      const minY = Math.min(0, rect.height - scaledH);
+      ctx.x = Math.max(minX, Math.min(0, ctx.x));
+      ctx.y = Math.max(minY, Math.min(0, ctx.y));
+    };
+
+    const zoomAt = (clientX, clientY, factor) => {
+      const rect = wrap.getBoundingClientRect();
+      const newScale = Math.max(ctx.minScale, Math.min(ctx.maxScale, ctx.scale * factor));
+      if (newScale === ctx.scale) return;
+      const px = clientX - rect.left, py = clientY - rect.top;
+      // Punto del contenido bajo el cursor/dedo antes del zoom,
+      // para que el zoom quede centrado ahí (no en la esquina).
+      const cx = (px - ctx.x) / ctx.scale;
+      const cy = (py - ctx.y) / ctx.scale;
+      ctx.scale = newScale;
+      ctx.x = px - cx * ctx.scale;
+      ctx.y = py - cy * ctx.scale;
+      clamp();
+      apply();
+    };
+    ctx.zoomAt = zoomAt;
+    ctx.apply = apply;
+
+    wrap.addEventListener("pointerdown", (e) => {
+      wrap.setPointerCapture(e.pointerId);
+      ctx.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ctx.pointers.size === 1) {
+        ctx.panLast = { x: e.clientX, y: e.clientY };
+      } else if (ctx.pointers.size === 2) {
+        const pts = [...ctx.pointers.values()];
+        ctx.pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+        ctx.pinchStartScale = ctx.scale;
+        ctx.panLast = null;
+      }
+    });
+
+    wrap.addEventListener("pointermove", (e) => {
+      if (!ctx.pointers.has(e.pointerId)) return;
+      ctx.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (ctx.pointers.size === 2) {
+        e.preventDefault();
+        const pts = [...ctx.pointers.values()];
+        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+        const midX = (pts[0].x + pts[1].x) / 2;
+        const midY = (pts[0].y + pts[1].y) / 2;
+        const targetScale = Math.max(ctx.minScale, Math.min(ctx.maxScale,
+          ctx.pinchStartScale * (dist / ctx.pinchStartDist)));
+        const factor = targetScale / ctx.scale;
+        if (factor !== 1) zoomAt(midX, midY, factor);
+      } else if (ctx.pointers.size === 1 && ctx.panLast && ctx.scale > ctx.minScale) {
+        e.preventDefault();
+        const dx = e.clientX - ctx.panLast.x;
+        const dy = e.clientY - ctx.panLast.y;
+        ctx.x += dx; ctx.y += dy;
+        ctx.panLast = { x: e.clientX, y: e.clientY };
+        clamp();
+        apply();
+      }
+    });
+
+    const endPointer = (e) => {
+      ctx.pointers.delete(e.pointerId);
+      ctx.pinchStartDist = 0;
+      if (ctx.pointers.size === 1) {
+        const [p] = ctx.pointers.values();
+        ctx.panLast = { x: p.x, y: p.y };
+      } else {
+        ctx.panLast = null;
+      }
+    };
+    wrap.addEventListener("pointerup", (e) => {
+      // Doble tap / doble click → alterna zoom
+      const now = Date.now();
+      if (now - ctx.lastTap < 320 && ctx.pointers.size <= 1) {
+        const target = ctx.scale > 1.3 ? 1 : 2.2;
+        zoomAt(e.clientX, e.clientY, target / ctx.scale);
+      }
+      ctx.lastTap = now;
+      endPointer(e);
+    });
+    wrap.addEventListener("pointercancel", endPointer);
+    wrap.addEventListener("pointerleave", (e) => {
+      if (ctx.pointers.size <= 1) endPointer(e);
+    });
+
+    // Rueda del mouse (desktop/trackpad) — zoom centrado en el cursor
+    wrap.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.12 : 0.89);
+    }, { passive: false });
+
+    apply();
+  },
+
+  zoomBy(factor) {
+    const ctx = this._ctx;
+    if (!ctx) return;
+    const rect = ctx.wrap.getBoundingClientRect();
+    ctx.zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, factor);
+  },
+
+  reset() {
+    const ctx = this._ctx;
+    if (!ctx) return;
+    ctx.scale = 1; ctx.x = 0; ctx.y = 0;
+    ctx.apply();
+  },
+};
+
+// ══════════════════════════════════════════════════════
 //  ROUTER DE PÁGINAS
 // ══════════════════════════════════════════════════════
 export async function renderPage(pageId, contenedor) {
@@ -644,15 +796,30 @@ async function renderNuevoPedido(cid, usuario) {
           </span>
         </div>
 
-        <!-- Plano SVG -->
+        <!-- Plano SVG — con zoom y pan táctil -->
         <div class="card border-0 shadow-sm mb-3" style="overflow:hidden;border-radius:16px;">
-          <div class="card-body p-0" style="background:#e2e8f0;">
-            <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding:4px;">
-              <svg viewBox="0 0 800 560" xmlns="http://www.w3.org/2000/svg"
-                   style="width:100%;min-width:300px;max-width:1000px;display:block;margin:0 auto;border-radius:14px;">
-                ${plano}
-                ${mesasSVG}
-              </svg>
+          <div class="card-body p-0">
+            <div class="map-zoom-wrap" id="map-zoom-wrap">
+              <div class="map-zoom-hint">
+                <i class="bi bi-arrows-angle-expand"></i> Pellizca o usa los botones para hacer zoom
+              </div>
+              <div class="map-zoom-inner" id="map-zoom-inner">
+                <svg viewBox="0 0 800 560" xmlns="http://www.w3.org/2000/svg">
+                  ${plano}
+                  ${mesasSVG}
+                </svg>
+              </div>
+              <div class="map-zoom-controls">
+                <button type="button" class="map-zoom-btn" title="Acercar" onclick="Pages.mapZoomIn()">
+                  <i class="bi bi-plus-lg"></i>
+                </button>
+                <button type="button" class="map-zoom-btn" title="Alejar" onclick="Pages.mapZoomOut()">
+                  <i class="bi bi-dash-lg"></i>
+                </button>
+                <button type="button" class="map-zoom-btn" title="Restablecer vista" onclick="Pages.mapZoomReset()">
+                  <i class="bi bi-arrow-counterclockwise"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -749,6 +916,9 @@ async function renderNuevoPedido(cid, usuario) {
 
   window._pedidoItems = [];
   window._mesaSeleccionada = null;
+
+  // Activar zoom/pan táctil sobre el plano del restaurante
+  MapZoom.init("map-zoom-wrap", "map-zoom-inner");
 }
 
 
@@ -1412,7 +1582,9 @@ async function renderFinanzas(cid) {
           <h6 class="fw-bold mb-0">Ganancias vs Gastos</h6>
         </div>
         <div class="card-body">
-          <canvas id="chart-finanzas" height="100"></canvas>
+          <div class="chart-wrap">
+            <canvas id="chart-finanzas"></canvas>
+          </div>
         </div>
       </div>
     </div>`;
@@ -1453,7 +1625,9 @@ async function cargarDatosFinanzas(periodo) {
       ]
     },
     options: {
-      responsive: true, plugins: { legend: { position: "top" } },
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: "top" } },
       scales: { y: { beginAtZero: true, ticks: { callback: v => "$" + v.toLocaleString("es-MX") } } }
     }
   });
@@ -1736,6 +1910,11 @@ export const PageActions = {
     document.getElementById("paso-mesa")?.classList.remove("d-none");
     document.getElementById("paso-platillos")?.classList.add("d-none");
   },
+
+  // Controles de zoom/pan del plano del restaurante
+  mapZoomIn() { MapZoom.zoomBy(1.4); },
+  mapZoomOut() { MapZoom.zoomBy(1 / 1.4); },
+  mapZoomReset() { MapZoom.reset(); },
 
   filtrarCategoria(cat) {
     document.querySelectorAll(".categoria-btn").forEach(b => {

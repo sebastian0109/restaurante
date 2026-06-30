@@ -36,6 +36,42 @@ export const MockDB = {
     { id: 8,  nombre: "Mote con Huesillo",   descripcion: "Bebida tradicional chilena fría",              precio: 1900,  categoria: "Bebidas",        imagen: "🥤", tiempo_prep: 2,  activo: true, ingredientes: [16] },
     { id: 9,  nombre: "Leche Asada",         descripcion: "Postre cremoso tradicional chileno",           precio: 3200,  categoria: "Postres",        imagen: "🍮", tiempo_prep: 5,  activo: true, ingredientes: [17, 18] },
     { id: 10, nombre: "Kuchen de Manzana",   descripcion: "Kuchen casero estilo alemán",                  precio: 3500,  categoria: "Postres",        imagen: "🍰", tiempo_prep: 8,  activo: true, ingredientes: [19, 20] },
+
+    // ── Entradas (nuevas) ──
+    { id: 11, nombre: "Ensalada César",          descripcion: "Lechuga, pollo, crutones y aderezo César",          precio: 4800,  categoria: "Entradas",       imagen: "🥗", tiempo_prep: 8,  activo: true, ingredientes: [2, 6, 12] },
+    { id: 12, nombre: "Papas Fritas Familiares", descripcion: "Papas fritas crujientes con salsa a elección",      precio: 3900,  categoria: "Entradas",       imagen: "🍟", tiempo_prep: 10, activo: true, ingredientes: [3] },
+    { id: 13, nombre: "Tabla de Quesos",         descripcion: "Selección de quesos con aceitunas y galletas",      precio: 6500,  categoria: "Entradas",       imagen: "🧀", tiempo_prep: 12, activo: true, ingredientes: [13, 14] },
+    { id: 14, nombre: "Camarones al Pil Pil",    descripcion: "Camarones salteados en mantequilla, ajo y ají",     precio: 7900,  categoria: "Entradas",       imagen: "🍤", tiempo_prep: 15, activo: true, ingredientes: [11, 13, 10] },
+
+    // ── Platos de Fondo (nuevos) ──
+    { id: 15, nombre: "Bistec a lo Pobre",       descripcion: "Bistec con papas fritas, cebolla caramelizada y huevo", precio: 9500,  categoria: "Platos Fuertes", imagen: "🥩", tiempo_prep: 25, activo: true, ingredientes: [1, 3, 5, 12] },
+    { id: 16, nombre: "Lasaña Boloñesa",         descripcion: "Lasaña tradicional con carne y queso gratinado",        precio: 8900,  categoria: "Platos Fuertes", imagen: "🍝", tiempo_prep: 30, activo: true, ingredientes: [1, 6, 7] },
+    { id: 17, nombre: "Fettuccine Alfredo",      descripcion: "Pasta con salsa Alfredo y pollo",                       precio: 8200,  categoria: "Platos Fuertes", imagen: "🍝", tiempo_prep: 20, activo: true, ingredientes: [2, 7, 14] },
+    { id: 18, nombre: "Ravioles de Espinaca",    descripcion: "Ravioles rellenos con salsa pomodoro",                  precio: 7900,  categoria: "Platos Fuertes", imagen: "🥟", tiempo_prep: 18, activo: true, ingredientes: [7, 6] },
+    { id: 19, nombre: "Salmón a la Plancha",     descripcion: "Salmón con verduras salteadas",                         precio: 11900, categoria: "Platos Fuertes", imagen: "🐟", tiempo_prep: 25, activo: true, ingredientes: [11, 6] },
+    { id: 20, nombre: "Reineta Frita",           descripcion: "Reineta acompañada de arroz o papas",                   precio: 9500,  categoria: "Platos Fuertes", imagen: "🐠", tiempo_prep: 20, activo: true, ingredientes: [11, 3] },
+    { id: 21, nombre: "Costillar BBQ",           descripcion: "Costillar de cerdo con papas rústicas",                 precio: 12500, categoria: "Platos Fuertes", imagen: "🍖", tiempo_prep: 35, activo: true, ingredientes: [1, 3] },
+    { id: 22, nombre: "Chuleta de Cerdo",        descripcion: "Chuleta grillada con puré casero",                      precio: 8500,  categoria: "Platos Fuertes", imagen: "🥩", tiempo_prep: 20, activo: true, ingredientes: [1, 3] },
+    { id: 23, nombre: "Pechuga Grillada",        descripcion: "Pollo grillado con ensalada mixta",                     precio: 7900,  categoria: "Platos Fuertes", imagen: "🍗", tiempo_prep: 20, activo: true, ingredientes: [2] },
+    { id: 24, nombre: "Chorrillana Individual",  descripcion: "Papas fritas, carne, cebolla y huevo",                  precio: 8900,  categoria: "Platos Fuertes", imagen: "🍳", tiempo_prep: 20, activo: true, ingredientes: [1, 3, 5, 12] },
+    { id: 25, nombre: "Arroz Chaufa de Pollo",   descripcion: "Arroz salteado estilo peruano con pollo",               precio: 7900,  categoria: "Platos Fuertes", imagen: "🍚", tiempo_prep: 18, activo: true, ingredientes: [9, 2] },
+    { id: 26, nombre: "Lomo Saltado",            descripcion: "Lomo salteado con cebolla, tomate y papas fritas",      precio: 10500, categoria: "Platos Fuertes", imagen: "🥘", tiempo_prep: 20, activo: true, ingredientes: [1, 5, 6, 3] },
+    { id: 27, nombre: "Hamburguesa Artesanal",   descripcion: "Carne de vacuno, queso cheddar y papas fritas",         precio: 8500,  categoria: "Platos Fuertes", imagen: "🍔", tiempo_prep: 18, activo: true, ingredientes: [1, 3] },
+    { id: 28, nombre: "Milanesa Napolitana",     descripcion: "Milanesa gratinada con jamón, queso y salsa de tomate", precio: 9200,  categoria: "Platos Fuertes", imagen: "🍗", tiempo_prep: 25, activo: true, ingredientes: [1, 6] },
+    { id: 29, nombre: "Risotto de Champiñones",  descripcion: "Arroz cremoso con champiñones y queso parmesano",       precio: 8900,  categoria: "Platos Fuertes", imagen: "🍄", tiempo_prep: 25, activo: true, ingredientes: [9, 14] },
+    { id: 30, nombre: "Carne Mechada con Puré",  descripcion: "Carne mechada acompañada de puré casero",               precio: 9800,  categoria: "Platos Fuertes", imagen: "🍖", tiempo_prep: 30, activo: true, ingredientes: [1, 3] },
+
+    // ── Postres (nuevos) ──
+    { id: 31, nombre: "Tiramisú",                    descripcion: "Postre italiano con café y mascarpone",             precio: 4500, categoria: "Postres", imagen: "🍰", tiempo_prep: 5, activo: true, ingredientes: [17, 18] },
+    { id: 32, nombre: "Cheesecake de Frutos Rojos",  descripcion: "Cheesecake con salsa de frutos rojos",               precio: 4900, categoria: "Postres", imagen: "🍓", tiempo_prep: 5, activo: true, ingredientes: [17, 19] },
+    { id: 33, nombre: "Brownie con Helado",          descripcion: "Brownie tibio acompañado de helado de vainilla",     precio: 4500, categoria: "Postres", imagen: "🍫", tiempo_prep: 7, activo: true, ingredientes: [20, 19] },
+    { id: 34, nombre: "Copa de Helado",              descripcion: "Tres sabores a elección",                            precio: 3900, categoria: "Postres", imagen: "🍨", tiempo_prep: 3, activo: true, ingredientes: [17, 19] },
+    { id: 35, nombre: "Panqueques con Manjar",       descripcion: "Dos panqueques rellenos de manjar",                  precio: 4200, categoria: "Postres", imagen: "🥞", tiempo_prep: 8, activo: true, ingredientes: [7, 17, 19] },
+    { id: 36, nombre: "Pie de Limón",                descripcion: "Pie de limón casero",                                precio: 3900, categoria: "Postres", imagen: "🥧", tiempo_prep: 5, activo: true, ingredientes: [8, 19] },
+    { id: 37, nombre: "Torta Tres Leches",           descripcion: "Bizcocho bañado en tres tipos de leche",             precio: 4800, categoria: "Postres", imagen: "🍰", tiempo_prep: 5, activo: true, ingredientes: [17, 19] },
+    { id: 38, nombre: "Flan Casero",                 descripcion: "Flan de vainilla con caramelo",                      precio: 3500, categoria: "Postres", imagen: "🍮", tiempo_prep: 5, activo: true, ingredientes: [17, 18, 19] },
+    { id: 39, nombre: "Ensalada de Frutas",          descripcion: "Frutas frescas de temporada",                        precio: 3200, categoria: "Postres", imagen: "🍇", tiempo_prep: 5, activo: true, ingredientes: [15] },
+    { id: 40, nombre: "Waffles con Helado",          descripcion: "Waffles recién hechos con helado y salsa de chocolate", precio: 4500, categoria: "Postres", imagen: "🧇", tiempo_prep: 6, activo: true, ingredientes: [7, 17, 20] },
   ],
 
   ingredientes: [

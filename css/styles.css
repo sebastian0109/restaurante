@@ -960,3 +960,192 @@ tr:hover .cal-celda { background: rgba(78,205,196,0.04); }
     right: -8px;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   RESPONSIVE v4 — Adaptación integral a móvil y tablet
+   (no cambia colores, iconos, tipografía ni arquitectura visual,
+   solo ajusta tamaños, layout y comportamiento táctil)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Objetivo táctil mínimo ~44x44px en pantallas táctiles ── */
+@media (max-width: 991.98px) {
+  .btn:not(.btn-xs) {
+    min-height: 44px;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+  .btn-sm:not(.btn-xs) {
+    min-height: 40px;
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+  .form-control, .form-select {
+    min-height: 44px;
+    font-size: 16px; /* evita el zoom automático de iOS al enfocar */
+  }
+  textarea.form-control { min-height: 88px; }
+  .sidebar-link {
+    min-height: 44px;
+    padding-top: 0.65rem !important;
+    padding-bottom: 0.65rem !important;
+  }
+  .dropdown-item { min-height: 40px; display: flex; align-items: center; }
+  .input-group-text { min-height: 44px; }
+  #btn-notif, #btn-perfil, .btn-close, .map-zoom-btn { min-width: 40px; min-height: 40px; }
+}
+
+/* Botones dentro de tablas y tarjetas mini pueden ser más compactos
+   (espacio limitado, no son la acción principal de la pantalla) */
+.table .btn, .table .btn-sm { min-height: 34px; }
+
+/* ── Header: evitar superposición en pantallas muy angostas (iPhone SE) ── */
+@media (max-width: 380px) {
+  .topbar { padding: 0 0.5rem; gap: 0.4rem; }
+  #topbar-avatar { width: 26px !important; height: 26px !important; font-size: 0.65rem !important; }
+  .topbar-title { font-size: 0.82rem; max-width: 84px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #btn-perfil { padding: 0.25rem 0.4rem !important; }
+}
+
+/* ── KPIs: 1 columna en pantallas muy angostas para que nunca se corten ── */
+@media (max-width: 380px) {
+  .row.g-3 > .col-6 { flex: 0 0 100%; max-width: 100%; }
+}
+@media (max-width: 400px) {
+  .row.g-3 .card-body { padding: 0.85rem !important; }
+  .row.g-3 .card .h3 { font-size: 1.35rem !important; }
+}
+
+/* ── Tablas: scroll horizontal suave, encabezados siempre legibles ── */
+.table-responsive {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+@media (max-width: 575.98px) {
+  .table th, .table td { white-space: nowrap; padding: 0.55rem 0.6rem; }
+  .table th { font-size: 0.68rem; }
+  .table td { font-size: 0.8rem; }
+}
+
+/* ── Modales: nunca se salen de la pantalla ── */
+@media (max-width: 575.98px) {
+  .modal-dialog,
+  .modal-dialog.modal-lg,
+  .modal-dialog.modal-xl {
+    margin: 0.6rem auto;
+    max-width: calc(100% - 1.2rem);
+  }
+  .modal-content { max-height: calc(100dvh - 1.2rem); }
+  .modal-dialog-scrollable .modal-body { max-height: calc(100dvh - 12rem); }
+  .modal-header, .modal-footer { padding: 0.85rem 1rem; }
+  .modal-body { padding: 1rem; }
+}
+
+/* ── Formularios: ancho completo y separación táctil suficiente ── */
+@media (max-width: 767.98px) {
+  .modal-body .row > [class*="col-"] { margin-bottom: 0.75rem; }
+  .modal-footer { flex-wrap: wrap; gap: 0.5rem; }
+  .modal-footer .btn { flex: 1 1 auto; min-width: 120px; }
+}
+
+/* ── Gráficos (Chart.js): contenedor de altura fija, nunca se deforman ── */
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 240px;
+}
+@media (min-width: 576px) {
+  .chart-wrap { height: 280px; }
+}
+@media (min-width: 992px) {
+  .chart-wrap { height: 340px; }
+}
+.chart-wrap canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   MAPA DEL RESTAURANTE — Zoom & Pan táctil (sin librerías externas)
+   Mismo plano, mismas posiciones de mesas; solo se agrega un
+   contenedor que permite pellizcar/arrastrar (pinch/pan) y botones
+   de control. La interacción JS vive en pages.js (MapZoom).
+   ══════════════════════════════════════════════════════════════════ */
+.map-zoom-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 800 / 560;
+  overflow: hidden;
+  background: #e2e8f0;
+  border-radius: 14px;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.map-zoom-inner {
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.map-zoom-inner svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.map-zoom-controls {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 5;
+}
+
+.map-zoom-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.map-zoom-btn:hover { background: #f8fafc; }
+.map-zoom-btn:active { transform: scale(0.92); background: #f1f5f9; }
+
+.map-zoom-hint {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  animation: fadeInUp 0.3s ease both;
+}
+@media (min-width: 992px) {
+  .map-zoom-hint { display: none; } /* en desktop ya se usa la rueda del mouse, sin necesidad de aviso */
+}
+
+/* ── Tablets (iPads, Galaxy Tab, etc.) — pequeños refinamientos ── */
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .page-content .p-4 { padding: 1.5rem !important; }
+  .map-zoom-controls { bottom: 16px; right: 16px; }
+}
